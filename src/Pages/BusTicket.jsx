@@ -22,6 +22,7 @@ const BusTicket = () => {
   const [offlineBookedSeats, setOfflineBookedSeats] = useState(['B2', 'C3']);
   const [isAdmin, setIsAdmin] = useState(false);
   const [password, setPassword] = useState('');
+  const [adminLoginLock, setAdminLoginLock] = useState(false);
 
   useEffect(() => {
     const storedSeats = localStorage.getItem(BOOKED_SEATS_KEY);
@@ -40,8 +41,8 @@ const BusTicket = () => {
     }
 
     const loginLock = localStorage.getItem('adminLoginLock');
-    if (loginLock === 'true' && storedAdmin !== 'true') {
-      setIsAdmin(false);
+    if (loginLock === 'true') {
+      setAdminLoginLock(true);
     }
   }, []);
 
@@ -52,6 +53,17 @@ const BusTicket = () => {
   useEffect(() => {
     localStorage.setItem(OFFLINE_BOOKED_SEATS_KEY, JSON.stringify(offlineBookedSeats));
   }, [offlineBookedSeats]);
+
+  // Sync login lock state across tabs/devices
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'adminLoginLock') {
+        setAdminLoginLock(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleSeatClick = (seat) => {
     if (bookedSeats.includes(seat) || offlineBookedSeats.includes(seat)) return;
@@ -81,6 +93,7 @@ const BusTicket = () => {
 
   const logoutAdmin = () => {
     setIsAdmin(false);
+    setAdminLoginLock(false);
     localStorage.removeItem('isAdmin');
     localStorage.removeItem('adminLoginLock');
   };
@@ -97,12 +110,13 @@ const BusTicket = () => {
   const handleAdminLogin = () => {
     const loginLock = localStorage.getItem('adminLoginLock');
     if (loginLock === 'true') {
-      alert('An admin is already logged in.');
+      alert('An admin is already logged in on another device.');
       return;
     }
 
     if (password === import.meta.env.VITE_ADMIN_PASSWORD) {
       setIsAdmin(true);
+      setAdminLoginLock(true);
       localStorage.setItem('isAdmin', 'true');
       localStorage.setItem('adminLoginLock', 'true');
     } else {
@@ -162,7 +176,7 @@ const BusTicket = () => {
         </div>
       )}
 
-      {!isAdmin && localStorage.getItem('adminLoginLock') !== 'true' && (
+      {!isAdmin && !adminLoginLock && (
         <div className="mt-4 flex items-center gap-2">
           <input
             type="password"
