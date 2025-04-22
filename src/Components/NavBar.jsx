@@ -32,7 +32,7 @@ function NavBar() {
 
   return (
     <div className="font-roboto">
-      <Navbar disableAnimation isBordered className="bg-transparent relative">
+      <Navbar disableAnimation isBordered className="bg-transparent fixed top-0 left-0">
         <NavbarBrand>
           <img src="/Logo.png" alt="Logo" />
         </NavbarBrand>
@@ -50,7 +50,7 @@ function NavBar() {
                   <RouterLink
                     to={item.path}
                     className={`hover:text-primary/55 transition-colors duration-300 ${
-                      isActive(item.path) ? "text-primary font-semibold" : ""
+                      isActive(item.path) ? "text-primary font-semibold" : "glow-text text-foreground"
                     }`}
                   >
                     {item.name}
@@ -82,7 +82,7 @@ function NavBar() {
                 <RouterLink
                   to={item.path}
                   className={`hover:text-primary/55 transition-colors duration-300 ${
-                    isActive(item.path) ? "text-primary font-semibold" : ""
+                    isActive(item.path) ? "text-primary font-semibold" : "glow-text text-foreground"
                   }`}
                 >
                   {item.name}
