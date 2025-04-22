@@ -28,13 +28,20 @@ const BusTicket = () => {
     if (storedSeats) {
       setBookedSeats(JSON.parse(storedSeats));
     }
+
     const storedOffline = localStorage.getItem(OFFLINE_BOOKED_SEATS_KEY);
     if (storedOffline) {
       setOfflineBookedSeats(JSON.parse(storedOffline));
     }
+
     const storedAdmin = localStorage.getItem('isAdmin');
     if (storedAdmin === 'true') {
       setIsAdmin(true);
+    }
+
+    const loginLock = localStorage.getItem('adminLoginLock');
+    if (loginLock === 'true' && storedAdmin !== 'true') {
+      setIsAdmin(false);
     }
   }, []);
 
@@ -69,6 +76,13 @@ const BusTicket = () => {
     setOfflineBookedSeats([]);
     localStorage.removeItem(BOOKED_SEATS_KEY);
     localStorage.removeItem(OFFLINE_BOOKED_SEATS_KEY);
+    logoutAdmin(); // Also logs out
+  };
+
+  const logoutAdmin = () => {
+    setIsAdmin(false);
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('adminLoginLock');
   };
 
   const handleOfflineBookingToggle = (seat) => {
@@ -81,9 +95,16 @@ const BusTicket = () => {
   };
 
   const handleAdminLogin = () => {
+    const loginLock = localStorage.getItem('adminLoginLock');
+    if (loginLock === 'true') {
+      alert('An admin is already logged in.');
+      return;
+    }
+
     if (password === import.meta.env.VITE_ADMIN_PASSWORD) {
       setIsAdmin(true);
       localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('adminLoginLock', 'true');
     } else {
       alert('Incorrect password');
     }
@@ -141,7 +162,7 @@ const BusTicket = () => {
         </div>
       )}
 
-      {!isAdmin && (
+      {!isAdmin && localStorage.getItem('adminLoginLock') !== 'true' && (
         <div className="mt-4 flex items-center gap-2">
           <input
             type="password"
@@ -160,14 +181,20 @@ const BusTicket = () => {
       )}
 
       {isAdmin && (
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col gap-2">
           <button
             className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
             onClick={resetBookings}
           >
             Reset All Bookings
           </button>
-          <p className="text-sm mt-1 text-gray-500">Right-click a seat to mark/unmark it as offline booked.</p>
+          <button
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+            onClick={logoutAdmin}
+          >
+            Logout Admin
+          </button>
+          <p className="text-sm text-gray-500">Right-click a seat to mark/unmark it as offline booked.</p>
         </div>
       )}
 
